@@ -150,9 +150,9 @@ function AdminPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("enrollments")
-        .select("id,student_id,course_id,created_at");
+        .select("id,student_id,course_id,assigned_at");
       if (error) throw error;
-      return (data ?? []) as { id: string; student_id: string; course_id: string; created_at: string }[];
+      return (data ?? []) as { id: string; student_id: string; course_id: string; assigned_at: string }[];
     },
   });
 
@@ -584,7 +584,7 @@ function EnrollmentsTab({
 }: {
   students: ProfileRow[];
   courses: CourseRow[];
-  enrollments: { id: string; student_id: string; course_id: string; created_at: string }[];
+  enrollments: { id: string; student_id: string; course_id: string; assigned_at: string }[];
   onChanged: () => void;
 }) {
   const [form, setForm] = useState({ student_id: "", course_id: "" });
@@ -680,7 +680,7 @@ function EnrollmentsTab({
                 <TableRow key={e.id}>
                   <TableCell>{studentName(e.student_id)}</TableCell>
                   <TableCell>{courseName(e.course_id)}</TableCell>
-                  <TableCell>{new Date(e.created_at).toLocaleDateString("ar-EG")}</TableCell>
+                  <TableCell>{new Date(e.assigned_at).toLocaleDateString("ar-EG")}</TableCell>
                   <TableCell>
                     <Button size="sm" variant="destructive" onClick={() => unenroll.mutate(e.id)}>
                       <Trash2 className="size-4" /> إلغاء
