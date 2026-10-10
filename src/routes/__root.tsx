@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -9,8 +9,10 @@ import {
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, LogOut } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { meQuery, useMe } from "@/lib/auth";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -126,6 +128,16 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function SiteHeader() {
+  const { data: me } = useMe();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    queryClient.clear();
+    router.navigate({ to: "/" });
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
@@ -146,19 +158,45 @@ function SiteHeader() {
           </Link>
         </nav>
         <div className="flex items-center gap-2">
-          <Link
-            to="/auth"
-            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            تسجيل الدخول
-          </Link>
-          <Link
-            to="/auth"
-            search={{ mode: "register" }}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            إنشاء حساب
-          </Link>
+          {me ? (
+            <>
+              <Link
+                to={me.isAdmin ? "/admin" : "/dashboard"}
+                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {me.isAdmin ? "لوحة الأدمن" : "لوحتي"}
+              </Link>
+              <Link
+                to="/profile"
+                className="hidden max-w-32 truncate rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
+              >
+                {me.profile?.full_name || "حسابي"}
+              </Link>
+              <button
+                onClick={signOut}
+                className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                <LogOut className="size-4" />
+                خروج
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/auth"
+                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                تسجيل الدخول
+              </Link>
+              <Link
+                to="/auth"
+                search={{ mode: "register" }}
+                className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                إنشاء حساب
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
@@ -181,6 +219,16 @@ function SiteFooter() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      queryClient.invalidateQueries({ queryKey: meQuery.queryKey });
+      router.invalidate();
+    });
+    return () => data.subscription.unsubscribe();
+  }, [queryClient, router]);
 
   return (
     <QueryClientProvider client={queryClient}>

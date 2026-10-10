@@ -238,6 +238,13 @@ export type Database = {
       can_access_course: { Args: { _course_id: string }; Returns: boolean }
       can_access_lesson: { Args: { _lesson_id: string }; Returns: boolean }
       grant_admin_by_email: { Args: { _email: string }; Returns: undefined }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_admin: { Args: never; Returns: boolean }
       is_approved: { Args: never; Returns: boolean }
     }
