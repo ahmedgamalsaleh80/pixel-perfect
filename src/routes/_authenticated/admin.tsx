@@ -226,7 +226,7 @@ function AdminPage() {
   );
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value?: number }) {
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number | undefined }) {
   return (
     <Card>
       <CardContent className="flex items-center gap-3 p-4">
