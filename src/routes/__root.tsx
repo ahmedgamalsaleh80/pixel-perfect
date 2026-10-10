@@ -128,6 +128,16 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function SiteHeader() {
+  const { data: me } = useMe();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    queryClient.clear();
+    router.navigate({ to: "/" });
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
