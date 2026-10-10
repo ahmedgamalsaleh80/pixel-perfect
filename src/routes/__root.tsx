@@ -158,19 +158,45 @@ function SiteHeader() {
           </Link>
         </nav>
         <div className="flex items-center gap-2">
-          <Link
-            to="/auth"
-            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            تسجيل الدخول
-          </Link>
-          <Link
-            to="/auth"
-            search={{ mode: "register" }}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            إنشاء حساب
-          </Link>
+          {me ? (
+            <>
+              <Link
+                to={me.isAdmin ? "/admin" : "/dashboard"}
+                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {me.isAdmin ? "لوحة الأدمن" : "لوحتي"}
+              </Link>
+              <Link
+                to="/profile"
+                className="hidden max-w-32 truncate rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
+              >
+                {me.profile?.full_name || "حسابي"}
+              </Link>
+              <button
+                onClick={signOut}
+                className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                <LogOut className="size-4" />
+                خروج
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/auth"
+                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                تسجيل الدخول
+              </Link>
+              <Link
+                to="/auth"
+                search={{ mode: "register" }}
+                className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                إنشاء حساب
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
