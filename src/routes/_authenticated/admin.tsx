@@ -348,7 +348,8 @@ function CoursesTab({
   lessons: LessonRow[];
   onChanged: () => void;
 }) {
-  const [courseForm, setCourseForm] = useState({ title: "", slug: "", description: "", thumbnail_url: "" });
+  const emptyCourse = { title: "", slug: "", description: "", thumbnail_url: "", max_students: "" };
+  const [courseForm, setCourseForm] = useState(emptyCourse);
   const [lessonForm, setLessonForm] = useState({
     course_id: "",
     title: "",
@@ -360,18 +361,24 @@ function CoursesTab({
 
   const addCourse = useMutation({
     mutationFn: async () => {
-      const slug = courseForm.slug.trim() || courseForm.title.trim().toLowerCase().replace(/\s+/g, "-");
+      const base = (courseForm.slug.trim() || courseForm.title.trim())
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, "-")
+        .replace(/^-+|-+$/g, "");
+      const slug = `${base || "course"}-${Math.random().toString(36).slice(2, 6)}`;
+      const max = Number(courseForm.max_students);
       const { error } = await supabase.from("courses").insert({
         title: courseForm.title.trim(),
         slug,
         description: courseForm.description.trim(),
         thumbnail_url: courseForm.thumbnail_url.trim() || null,
+        max_students: max > 0 ? max : null,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("تم إضافة الكورس");
-      setCourseForm({ title: "", slug: "", description: "", thumbnail_url: "" });
+      setCourseForm(emptyCourse);
       onChanged();
     },
     onError: (e) => toast.error(`فشل إضافة الكورس: ${e.message}`),
@@ -465,6 +472,10 @@ function CoursesTab({
           <div>
             <Label htmlFor="cth">رابط صورة الغلاف (اختياري)</Label>
             <Input id="cth" dir="ltr" value={courseForm.thumbnail_url} onChange={(e) => setCourseForm({ ...courseForm, thumbnail_url: e.target.value })} />
+          </div>
+          <div>
+            <Label htmlFor="cmax">أقصى عدد طلاب (اختياري)</Label>
+            <Input id="cmax" type="number" min={1} dir="ltr" placeholder="بدون حد" value={courseForm.max_students} onChange={(e) => setCourseForm({ ...courseForm, max_students: e.target.value })} />
           </div>
           <Button onClick={() => addCourse.mutate()} disabled={!courseForm.title.trim() || addCourse.isPending}>
             <Plus className="size-4" /> إضافة الكورس
