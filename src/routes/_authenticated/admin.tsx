@@ -42,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RequestsTab, AddStudentTab, ProgressTab, QuizzesTab, BulkEnrollCard } from "@/components/admin/AdminExtras";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -191,7 +192,16 @@ function AdminPage() {
           <TabsTrigger value="students">الطلاب</TabsTrigger>
           <TabsTrigger value="courses">الكورسات والدروس</TabsTrigger>
           <TabsTrigger value="enrollments">الاشتراكات</TabsTrigger>
+          <TabsTrigger value="requests">طلبات فتح الكورسات</TabsTrigger>
+          <TabsTrigger value="add-student">إضافة طالب</TabsTrigger>
+          <TabsTrigger value="progress">تقدم الطلاب</TabsTrigger>
+          <TabsTrigger value="quizzes">الامتحانات والكويزات</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="requests" className="mt-4"><RequestsTab /></TabsContent>
+        <TabsContent value="add-student" className="mt-4"><AddStudentTab /></TabsContent>
+        <TabsContent value="progress" className="mt-4"><ProgressTab /></TabsContent>
+        <TabsContent value="quizzes" className="mt-4"><QuizzesTab courses={courses} /></TabsContent>
 
         <TabsContent value="overview" className="mt-4">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -214,6 +224,8 @@ function AdminPage() {
         </TabsContent>
 
         <TabsContent value="enrollments" className="mt-4">
+          <BulkEnrollCard students={students} courses={courses} enrollments={enrollments} onChanged={invalidateAll} />
+          <div className="h-6" />
           <EnrollmentsTab
             students={students}
             courses={courses}
@@ -348,7 +360,8 @@ function CoursesTab({
   lessons: LessonRow[];
   onChanged: () => void;
 }) {
-  const [courseForm, setCourseForm] = useState({ title: "", slug: "", description: "", thumbnail_url: "" });
+  const emptyCourse = { title: "", slug: "", description: "", thumbnail_url: "", max_students: "" };
+  const [courseForm, setCourseForm] = useState(emptyCourse);
   const [lessonForm, setLessonForm] = useState({
     course_id: "",
     title: "",
@@ -360,18 +373,24 @@ function CoursesTab({
 
   const addCourse = useMutation({
     mutationFn: async () => {
-      const slug = courseForm.slug.trim() || courseForm.title.trim().toLowerCase().replace(/\s+/g, "-");
+      const base = (courseForm.slug.trim() || courseForm.title.trim())
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, "-")
+        .replace(/^-+|-+$/g, "");
+      const slug = `${base || "course"}-${Math.random().toString(36).slice(2, 6)}`;
+      const max = Number(courseForm.max_students);
       const { error } = await supabase.from("courses").insert({
         title: courseForm.title.trim(),
         slug,
         description: courseForm.description.trim(),
         thumbnail_url: courseForm.thumbnail_url.trim() || null,
+        max_students: max > 0 ? max : null,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("تم إضافة الكورس");
-      setCourseForm({ title: "", slug: "", description: "", thumbnail_url: "" });
+      setCourseForm(emptyCourse);
       onChanged();
     },
     onError: (e) => toast.error(`فشل إضافة الكورس: ${e.message}`),
@@ -465,6 +484,10 @@ function CoursesTab({
           <div>
             <Label htmlFor="cth">رابط صورة الغلاف (اختياري)</Label>
             <Input id="cth" dir="ltr" value={courseForm.thumbnail_url} onChange={(e) => setCourseForm({ ...courseForm, thumbnail_url: e.target.value })} />
+          </div>
+          <div>
+            <Label htmlFor="cmax">أقصى عدد طلاب (اختياري)</Label>
+            <Input id="cmax" type="number" min={1} dir="ltr" placeholder="بدون حد" value={courseForm.max_students} onChange={(e) => setCourseForm({ ...courseForm, max_students: e.target.value })} />
           </div>
           <Button onClick={() => addCourse.mutate()} disabled={!courseForm.title.trim() || addCourse.isPending}>
             <Plus className="size-4" /> إضافة الكورس
@@ -602,7 +625,7 @@ function EnrollmentsTab({
       setForm({ student_id: "", course_id: "" });
       onChanged();
     },
-    onError: () => toast.error("فشل التسجيل — ممكن يكون الطالب مسجل بالفعل"),
+    onError: (e) => toast.error(e.message.includes("COURSE_FULL") ? "الكورس اكتمل العدد" : "فشل التسجيل — ممكن يكون الطالب مسجل بالفعل"),
   });
 
   const unenroll = useMutation({

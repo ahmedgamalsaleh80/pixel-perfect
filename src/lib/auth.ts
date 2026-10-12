@@ -61,3 +61,8 @@ export function authErrorMessage(message: string): string {
   if (m.includes("rate limit")) return "محاولات كتير، استنى شوية وجرّب تاني";
   return "حصل خطأ، حاول مرة تانية";
 }
+
+export const gradeLabels: Record<string, string> = {
+  bac1: "الصف الأول بكالوريا",
+  bac2: "الصف الثاني بكالوريا",
+};
