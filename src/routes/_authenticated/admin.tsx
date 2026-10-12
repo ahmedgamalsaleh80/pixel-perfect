@@ -42,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RequestsTab, AddStudentTab, ProgressTab, QuizzesTab, BulkEnrollCard } from "@/components/admin/AdminExtras";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -191,7 +192,16 @@ function AdminPage() {
           <TabsTrigger value="students">الطلاب</TabsTrigger>
           <TabsTrigger value="courses">الكورسات والدروس</TabsTrigger>
           <TabsTrigger value="enrollments">الاشتراكات</TabsTrigger>
+          <TabsTrigger value="requests">طلبات فتح الكورسات</TabsTrigger>
+          <TabsTrigger value="add-student">إضافة طالب</TabsTrigger>
+          <TabsTrigger value="progress">تقدم الطلاب</TabsTrigger>
+          <TabsTrigger value="quizzes">الامتحانات والكويزات</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="requests" className="mt-4"><RequestsTab /></TabsContent>
+        <TabsContent value="add-student" className="mt-4"><AddStudentTab /></TabsContent>
+        <TabsContent value="progress" className="mt-4"><ProgressTab /></TabsContent>
+        <TabsContent value="quizzes" className="mt-4"><QuizzesTab courses={courses} /></TabsContent>
 
         <TabsContent value="overview" className="mt-4">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -214,6 +224,8 @@ function AdminPage() {
         </TabsContent>
 
         <TabsContent value="enrollments" className="mt-4">
+          <BulkEnrollCard students={students} courses={courses} enrollments={enrollments} onChanged={invalidateAll} />
+          <div className="h-6" />
           <EnrollmentsTab
             students={students}
             courses={courses}
@@ -613,7 +625,7 @@ function EnrollmentsTab({
       setForm({ student_id: "", course_id: "" });
       onChanged();
     },
-    onError: () => toast.error("فشل التسجيل — ممكن يكون الطالب مسجل بالفعل"),
+    onError: (e) => toast.error(e.message.includes("COURSE_FULL") ? "الكورس اكتمل العدد" : "فشل التسجيل — ممكن يكون الطالب مسجل بالفعل"),
   });
 
   const unenroll = useMutation({
