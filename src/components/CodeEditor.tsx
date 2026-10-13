@@ -25,7 +25,7 @@ function runnerDoc(lang: Lang, code: string) {
 
 export function CodeEditor({ compact = false }: { compact?: boolean }) {
   const [lang, setLang] = useState<Lang>("python");
-  const [code, setCode] = useState(LANGS[0].sample);
+  const [code, setCode] = useState(LANGS[0]!.sample);
   const [name, setName] = useState("my-code");
   const [output, setOutput] = useState<{ t: string; k: string }[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
