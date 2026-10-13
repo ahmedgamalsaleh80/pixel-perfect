@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/States";
 import { NotFoundPage } from "../not-found";
+import { CodeEditor } from "@/components/CodeEditor";
 
 export const Route = createFileRoute("/_authenticated/lessons/$id")({
   head: () => ({
@@ -105,6 +106,9 @@ function LessonPage() {
       {lesson.resource_url && /^https:\/\//.test(lesson.resource_url) && (
         <a href={lesson.resource_url} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm text-primary hover:underline"><FileText className="size-4" />ملفات الدرس</a>
       )}
+
+      <h2 className="mt-8 font-display text-xl font-bold">جرّب بنفسك</h2>
+      <div className="mt-3"><CodeEditor /></div>
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-6">
         <Button variant={completed ? "outline" : "default"} onClick={() => toggle.mutate(!completed)} disabled={toggle.isPending}>

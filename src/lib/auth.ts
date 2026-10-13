@@ -55,6 +55,8 @@ export const statusLabels: Record<AccountStatus, string> = {
 export function authErrorMessage(message: string): string {
   const m = message.toLowerCase();
   if (m.includes("invalid login")) return "البريد الإلكتروني أو كلمة المرور غير صحيحة";
+  if (m.includes("weak") || m.includes("pwned")) return "كلمة المرور دي ضعيفة ومعروفة، اختار كلمة أقوى";
+  if (m.includes("already registered")) return "البريد ده مسجل قبل كده";
   if (m.includes("email not confirmed")) return "لازم تأكد بريدك الإلكتروني الأول من الرسالة اللي وصلتك";
   if (m.includes("already registered")) return "البريد ده مسجل بالفعل، جرّب تسجيل الدخول";
   if (m.includes("password")) return "كلمة المرور ضعيفة أو غير مقبولة، استخدم ٨ أحرف على الأقل";

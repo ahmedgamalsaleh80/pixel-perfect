@@ -156,6 +156,9 @@ function SiteHeader() {
           <Link to="/courses" className="transition-colors hover:text-foreground" activeProps={{ className: "text-foreground font-semibold" }}>
             الكورسات
           </Link>
+          <Link to="/editor" className="transition-colors hover:text-foreground" activeProps={{ className: "text-foreground font-semibold" }}>
+            محرر الأكواد
+          </Link>
         </nav>
         <div className="flex items-center gap-2">
           {me ? (
