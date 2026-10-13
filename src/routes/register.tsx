@@ -22,11 +22,11 @@ export const Route = createFileRoute("/register")({
 });
 
 function RegisterPage() {
-  const [form, setForm] = useState({ fullName: "", email: "", phone: "", password: "", confirm: "" });
+  const [form, setForm] = useState({ fullName: "", email: "", phone: "", parentPhone: "", grade: "", password: "", confirm: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [k]: e.target.value });
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm({ ...form, [k]: e.target.value });
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -34,7 +34,10 @@ function RegisterPage() {
     if (form.fullName.trim().length < 3) errs["fullName"] = "اكتب اسمك بالكامل (٣ أحرف على الأقل)";
     if (form.fullName.length > 120) errs["fullName"] = "الاسم طويل جداً";
     if (!/^\S+@\S+\.\S+$/.test(form.email)) errs["email"] = "اكتب بريد إلكتروني صحيح";
-    if (form.phone && !/^\+?[0-9\s-]{7,20}$/.test(form.phone)) errs["phone"] = "رقم الموبايل غير صحيح";
+    if (!/^\+?[0-9\s-]{7,20}$/.test(form.phone)) errs["phone"] = "اكتب رقم موبايل صحيح";
+    if (!/^\+?[0-9\s-]{7,20}$/.test(form.parentPhone)) errs["parentPhone"] = "اكتب رقم ولي الأمر صحيح";
+    if (form.phone.trim() && form.phone.trim() === form.parentPhone.trim()) errs["parentPhone"] = "رقم ولي الأمر لازم يكون مختلف عن رقمك";
+    if (!["bac1", "bac2"].includes(form.grade)) errs["grade"] = "اختار صفك الدراسي";
     if (form.password.length < 8) errs["password"] = "كلمة المرور لازم تكون ٨ أحرف على الأقل";
     if (form.password !== form.confirm) errs["confirm"] = "كلمتين المرور مش متطابقين";
     setErrors(errs);
@@ -45,7 +48,7 @@ function RegisterPage() {
       password: form.password,
       options: {
         emailRedirectTo: `${window.location.origin}/pending-approval`,
-        data: { full_name: form.fullName.trim(), phone: form.phone.trim() },
+        data: { full_name: form.fullName.trim(), phone: form.phone.trim(), parent_phone: form.parentPhone.trim(), grade: form.grade },
       },
     });
     setLoading(false);
@@ -80,9 +83,23 @@ function RegisterPage() {
           <FieldError msg={errors["email"]} />
         </div>
         <div>
-          <Label htmlFor="phone">رقم الموبايل (اختياري)</Label>
+          <Label htmlFor="grade">الصف الدراسي</Label>
+          <select id="grade" value={form.grade} onChange={set("grade")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+            <option value="">اختار الصف</option>
+            <option value="bac1">الصف الأول بكالوريا</option>
+            <option value="bac2">الصف الثاني بكالوريا</option>
+          </select>
+          <FieldError msg={errors["grade"]} />
+        </div>
+        <div>
+          <Label htmlFor="phone">رقم موبايل الطالب</Label>
           <Input id="phone" type="tel" dir="ltr" autoComplete="tel" value={form.phone} onChange={set("phone")} />
           <FieldError msg={errors["phone"]} />
+        </div>
+        <div>
+          <Label htmlFor="parentPhone">رقم موبايل ولي الأمر</Label>
+          <Input id="parentPhone" type="tel" dir="ltr" value={form.parentPhone} onChange={set("parentPhone")} />
+          <FieldError msg={errors["parentPhone"]} />
         </div>
         <div>
           <Label htmlFor="password">كلمة المرور</Label>

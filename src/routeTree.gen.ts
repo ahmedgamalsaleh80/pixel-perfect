@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as EditorRouteImport } from './routes/editor'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as NotFoundRouteImport } from './routes/not-found'
@@ -24,6 +25,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
 import { Route as AuthenticatedCoursesSlugRouteImport } from './routes/_authenticated/courses.$slug'
 import { Route as AuthenticatedLessonsIdRouteImport } from './routes/_authenticated/lessons.$id'
+import { Route as AuthenticatedQuizzesIdRouteImport } from './routes/_authenticated/quizzes.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -37,6 +39,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorRoute = EditorRouteImport.update({
+  id: '/editor',
+  path: '/editor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -101,10 +108,16 @@ const AuthenticatedLessonsIdRoute = AuthenticatedLessonsIdRouteImport.update({
   path: '/lessons/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedQuizzesIdRoute = AuthenticatedQuizzesIdRouteImport.update({
+  id: '/quizzes/$id',
+  path: '/quizzes/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/editor': typeof EditorRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/not-found': typeof NotFoundRoute
@@ -116,11 +129,13 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/courses/$slug': typeof AuthenticatedCoursesSlugRoute
   '/lessons/$id': typeof AuthenticatedLessonsIdRoute
+  '/quizzes/$id': typeof AuthenticatedQuizzesIdRoute
   '/courses/': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/editor': typeof EditorRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/not-found': typeof NotFoundRoute
@@ -132,6 +147,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/courses/$slug': typeof AuthenticatedCoursesSlugRoute
   '/lessons/$id': typeof AuthenticatedLessonsIdRoute
+  '/quizzes/$id': typeof AuthenticatedQuizzesIdRoute
   '/courses': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRoutesById {
@@ -139,6 +155,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/editor': typeof EditorRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/not-found': typeof NotFoundRoute
@@ -150,6 +167,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/courses/$slug': typeof AuthenticatedCoursesSlugRoute
   '/_authenticated/lessons/$id': typeof AuthenticatedLessonsIdRoute
+  '/_authenticated/quizzes/$id': typeof AuthenticatedQuizzesIdRoute
   '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
 }
 export interface FileRouteTypes {
@@ -157,6 +175,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/editor'
     | '/forgot-password'
     | '/login'
     | '/not-found'
@@ -168,11 +187,13 @@ export interface FileRouteTypes {
     | '/profile'
     | '/courses/$slug'
     | '/lessons/$id'
+    | '/quizzes/$id'
     | '/courses/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/editor'
     | '/forgot-password'
     | '/login'
     | '/not-found'
@@ -184,12 +205,14 @@ export interface FileRouteTypes {
     | '/profile'
     | '/courses/$slug'
     | '/lessons/$id'
+    | '/quizzes/$id'
     | '/courses'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/editor'
     | '/forgot-password'
     | '/login'
     | '/not-found'
@@ -201,6 +224,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/courses/$slug'
     | '/_authenticated/lessons/$id'
+    | '/_authenticated/quizzes/$id'
     | '/_authenticated/courses/'
   fileRoutesById: FileRoutesById
 }
@@ -208,6 +232,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  EditorRoute: typeof EditorRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   NotFoundRoute: typeof NotFoundRoute
@@ -237,6 +262,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editor': {
+      id: '/editor'
+      path: '/editor'
+      fullPath: '/editor'
+      preLoaderRoute: typeof EditorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -323,6 +355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLessonsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/quizzes/$id': {
+      id: '/_authenticated/quizzes/$id'
+      path: '/quizzes/$id'
+      fullPath: '/quizzes/$id'
+      preLoaderRoute: typeof AuthenticatedQuizzesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -332,6 +371,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedCoursesSlugRoute: typeof AuthenticatedCoursesSlugRoute
   AuthenticatedLessonsIdRoute: typeof AuthenticatedLessonsIdRoute
+  AuthenticatedQuizzesIdRoute: typeof AuthenticatedQuizzesIdRoute
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
 }
 
@@ -341,6 +381,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedCoursesSlugRoute: AuthenticatedCoursesSlugRoute,
   AuthenticatedLessonsIdRoute: AuthenticatedLessonsIdRoute,
+  AuthenticatedQuizzesIdRoute: AuthenticatedQuizzesIdRoute,
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
 }
 
@@ -351,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  EditorRoute: EditorRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   NotFoundRoute: NotFoundRoute,
