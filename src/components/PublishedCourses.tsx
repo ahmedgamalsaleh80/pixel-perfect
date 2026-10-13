@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { RequestAccess } from "@/components/RequestAccess";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /** Public preview of published courses (title/description only — lessons stay private). */
@@ -10,10 +11,9 @@ export function PublishedCourses() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("courses")
-        .select("id,title,description,thumbnail_url")
+        .select("id,title,slug,description,thumbnail_url")
         .eq("is_published", true)
         .order("created_at", { ascending: false })
-        .limit(6);
       if (error) throw error;
       return data;
     },
@@ -39,7 +39,8 @@ export function PublishedCourses() {
             <div className="flex flex-1 flex-col p-5">
               <h3 className="font-display text-lg font-bold">{c.title}</h3>
               <p className="mt-2 line-clamp-3 flex-1 text-sm text-muted-foreground">{c.description}</p>
-              <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><Lock className="size-3.5 text-primary" />متاح بعد الموافقة والتسجيل في الكورس</p>
+              <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><Lock className="size-3.5 text-primary" />بيتفتح بعد موافقة الإدارة</p>
+              <div className="mt-3"><RequestAccess courseId={c.id} slug={c.slug} /></div>
             </div>
           </article>
         ))}
