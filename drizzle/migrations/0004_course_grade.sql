@@ -1,0 +1,1 @@
+ALTER TABLE public.courses ADD COLUMN grade text CHECK (grade IN ('bac1','bac2'));
