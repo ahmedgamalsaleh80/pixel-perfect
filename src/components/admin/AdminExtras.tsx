@@ -336,6 +336,7 @@ export function QuizzesTab({ courses }: { courses: Course[] }) {
   const [courseId, setCourseId] = useState("");
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
+  const [duration, setDuration] = useState("");
   const [qs, setQs] = useState<QDraft[]>([{ question: "", options: ["", "", "", ""], correct: 0 }]);
 
   const list = useQuery({
@@ -351,7 +352,7 @@ export function QuizzesTab({ courses }: { courses: Course[] }) {
       const clean = qs.map((q) => ({ ...q, options: q.options.map((o) => o.trim()) })).filter((q) => q.question.trim());
       if (!courseId || !title.trim() || !clean.length) throw new Error("اختار الكورس واكتب العنوان وسؤال واحد على الأقل");
       for (const q of clean) if (q.options.filter(Boolean).length < 2 || !q.options[q.correct]) throw new Error("كل سؤال محتاج اختيارين على الأقل والإجابة الصحيحة مكتوبة");
-      const { data: quiz, error } = await supabase.from("quizzes").insert({ course_id: courseId, title: title.trim(), description: desc.trim() }).select("id").single();
+      const { data: quiz, error } = await supabase.from("quizzes").insert({ course_id: courseId, title: title.trim(), description: desc.trim(), duration_minutes: Number(duration) > 0 ? Number(duration) : null }).select("id").single();
       if (error) throw error;
       for (const [i, q] of clean.entries()) {
         const opts = q.options.filter(Boolean);
@@ -362,7 +363,7 @@ export function QuizzesTab({ courses }: { courses: Course[] }) {
         if (e2) throw e2;
       }
     },
-    onSuccess: () => { toast.success("تم حفظ الامتحان — فعّل النشر عشان يظهر للطلاب"); setTitle(""); setDesc(""); setQs([{ question: "", options: ["", "", "", ""], correct: 0 }]); invalidate(); },
+    onSuccess: () => { toast.success("تم حفظ الامتحان — فعّل النشر عشان يظهر للطلاب"); setTitle(""); setDesc(""); setDuration(""); setQs([{ question: "", options: ["", "", "", ""], correct: 0 }]); invalidate(); },
     onError: (e) => toast.error(e.message),
   });
 
@@ -388,6 +389,7 @@ export function QuizzesTab({ courses }: { courses: Course[] }) {
           </Select>
           <Input placeholder="عنوان الامتحان" value={title} onChange={(e) => setTitle(e.target.value)} />
           <Textarea placeholder="تعليمات (اختياري)" value={desc} onChange={(e) => setDesc(e.target.value)} />
+          <Input type="number" min={1} dir="ltr" placeholder="مدة الامتحان بالدقايق (اختياري — فاضي = بدون وقت)" value={duration} onChange={(e) => setDuration(e.target.value)} />
           {qs.map((q, i) => (
             <div key={i} className="space-y-2 rounded-lg border border-border p-3">
               <div className="flex items-center gap-2">
@@ -425,5 +427,48 @@ export function QuizzesTab({ courses }: { courses: Course[] }) {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+/* ---------- Grades ---------- */
+export function GradesTab() {
+  const [filter, setFilter] = useState("");
+  const q = useQuery({
+    queryKey: ["admin", "grades"],
+    queryFn: async () => {
+      const [ps, at] = await Promise.all([
+        supabase.from("profiles").select("id,full_name,grade"),
+        supabase.from("quiz_attempts").select("id,student_id,score,total,created_at,quizzes(title,courses(title))").order("created_at", { ascending: false }),
+      ]);
+      const names = new Map((ps.data ?? []).map((p) => [p.id, p]));
+      return (at.data ?? []).map((a) => ({ ...a, student: names.get(a.student_id) }));
+    },
+  });
+  const rows = (q.data ?? []).filter((r) => !filter || `${r.student?.full_name ?? ""} ${r.quizzes?.title ?? ""}`.includes(filter));
+  return (
+    <Card>
+      <CardHeader><CardTitle>درجات الطلاب</CardTitle></CardHeader>
+      <CardContent className="space-y-3">
+        <Input placeholder="ابحث باسم الطالب أو الامتحان" value={filter} onChange={(e) => setFilter(e.target.value)} />
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr className="border-b border-border text-right text-muted-foreground"><th className="p-2">الطالب</th><th className="p-2">الصف</th><th className="p-2">الكورس</th><th className="p-2">الامتحان</th><th className="p-2">الدرجة</th><th className="p-2">التاريخ</th></tr></thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-b border-border/50">
+                  <td className="p-2">{r.student?.full_name || "—"}</td>
+                  <td className="p-2">{gradeLabels[r.student?.grade ?? ""] ?? "—"}</td>
+                  <td className="p-2">{r.quizzes?.courses?.title ?? "—"}</td>
+                  <td className="p-2">{r.quizzes?.title}</td>
+                  <td className="p-2 font-bold">{r.score}/{r.total} <span className="text-xs text-muted-foreground">({r.total ? Math.round((r.score / r.total) * 100) : 0}%)</span></td>
+                  <td className="p-2 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("ar-EG")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!rows.length && <p className="py-6 text-center text-sm text-muted-foreground">مفيش درجات لسه.</p>}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

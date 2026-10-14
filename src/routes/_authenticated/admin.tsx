@@ -42,7 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RequestsTab, AddStudentTab, ProgressTab, QuizzesTab, BulkEnrollCard } from "@/components/admin/AdminExtras";
+import { RequestsTab, AddStudentTab, ProgressTab, QuizzesTab, BulkEnrollCard, GradesTab } from "@/components/admin/AdminExtras";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -83,6 +83,7 @@ type CourseRow = {
   description: string;
   thumbnail_url: string | null;
   is_published: boolean;
+  max_students: number | null;
 };
 
 type LessonRow = {
@@ -127,7 +128,7 @@ function AdminPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("courses")
-        .select("id,title,slug,description,thumbnail_url,is_published")
+        .select("id,title,slug,description,thumbnail_url,is_published,max_students")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as CourseRow[];
@@ -196,12 +197,14 @@ function AdminPage() {
           <TabsTrigger value="add-student">إضافة طالب</TabsTrigger>
           <TabsTrigger value="progress">تقدم الطلاب</TabsTrigger>
           <TabsTrigger value="quizzes">الامتحانات والكويزات</TabsTrigger>
+          <TabsTrigger value="grades">درجات الطلاب</TabsTrigger>
         </TabsList>
 
         <TabsContent value="requests" className="mt-4"><RequestsTab /></TabsContent>
         <TabsContent value="add-student" className="mt-4"><AddStudentTab /></TabsContent>
         <TabsContent value="progress" className="mt-4"><ProgressTab /></TabsContent>
         <TabsContent value="quizzes" className="mt-4"><QuizzesTab courses={courses} /></TabsContent>
+        <TabsContent value="grades" className="mt-4"><GradesTab /></TabsContent>
 
         <TabsContent value="overview" className="mt-4">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -362,6 +365,12 @@ function CoursesTab({
 }) {
   const emptyCourse = { title: "", slug: "", description: "", thumbnail_url: "", max_students: "" };
   const [courseForm, setCourseForm] = useState(emptyCourse);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const startEdit = (c: CourseRow) => {
+    setEditingId(c.id);
+    setCourseForm({ title: c.title, slug: c.slug, description: c.description ?? "", thumbnail_url: c.thumbnail_url ?? "", max_students: c.max_students ? String(c.max_students) : "" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const [lessonForm, setLessonForm] = useState({
     course_id: "",
     title: "",
@@ -379,6 +388,16 @@ function CoursesTab({
         .replace(/^-+|-+$/g, "");
       const slug = `${base || "course"}-${Math.random().toString(36).slice(2, 6)}`;
       const max = Number(courseForm.max_students);
+      if (editingId) {
+        const { error } = await supabase.from("courses").update({
+          title: courseForm.title.trim(),
+          description: courseForm.description.trim(),
+          thumbnail_url: courseForm.thumbnail_url.trim() || null,
+          max_students: max > 0 ? max : null,
+        }).eq("id", editingId);
+        if (error) throw error;
+        return;
+      }
       const { error } = await supabase.from("courses").insert({
         title: courseForm.title.trim(),
         slug,
@@ -389,8 +408,9 @@ function CoursesTab({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("تم إضافة الكورس");
+      toast.success(editingId ? "تم حفظ التعديلات" : "تم إضافة الكورس");
       setCourseForm(emptyCourse);
+      setEditingId(null);
       onChanged();
     },
     onError: (e) => toast.error(`فشل إضافة الكورس: ${e.message}`),
@@ -466,12 +486,12 @@ function CoursesTab({
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>إضافة كورس جديد</CardTitle>
+          <CardTitle>{editingId ? "تعديل بيانات الكورس" : "إضافة كورس جديد"}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
             <Label htmlFor="ct">عنوان الكورس</Label>
-            <Input id="ct" value={courseForm.title} onChange={(e) => setCourseForm({ ...courseForm, title: e.target.value })} />
+            <Input id="ct" dir="auto" value={courseForm.title} onChange={(e) => setCourseForm({ ...courseForm, title: e.target.value })} />
           </div>
           <div>
             <Label htmlFor="cs">الرابط المختصر (slug)</Label>
@@ -479,7 +499,7 @@ function CoursesTab({
           </div>
           <div>
             <Label htmlFor="cd">الوصف</Label>
-            <Textarea id="cd" value={courseForm.description} onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })} />
+            <Textarea id="cd" dir="auto" rows={5} placeholder="اكتب تفاصيل الكورس بالعربي: هتتعلم إيه، مين يناسبه..." value={courseForm.description} onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })} />
           </div>
           <div>
             <Label htmlFor="cth">رابط صورة الغلاف (اختياري)</Label>
@@ -490,8 +510,9 @@ function CoursesTab({
             <Input id="cmax" type="number" min={1} dir="ltr" placeholder="بدون حد" value={courseForm.max_students} onChange={(e) => setCourseForm({ ...courseForm, max_students: e.target.value })} />
           </div>
           <Button onClick={() => addCourse.mutate()} disabled={!courseForm.title.trim() || addCourse.isPending}>
-            <Plus className="size-4" /> إضافة الكورس
+            <Plus className="size-4" /> {editingId ? "حفظ التعديلات" : "إضافة الكورس"}
           </Button>
+          {editingId && <Button variant="ghost" onClick={() => { setEditingId(null); setCourseForm(emptyCourse); }}>إلغاء التعديل</Button>}
         </CardContent>
       </Card>
 
@@ -561,6 +582,7 @@ function CoursesTab({
                         onCheckedChange={(v) => toggleCourse.mutate({ id: c.id, is_published: v })}
                       />
                     </label>
+                    <Button size="sm" variant="outline" onClick={() => startEdit(c)}>تعديل</Button>
                     <Button size="sm" variant="destructive" onClick={() => deleteCourse.mutate(c.id)}>
                       <Trash2 className="size-4" /> حذف
                     </Button>
