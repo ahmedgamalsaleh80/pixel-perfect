@@ -29,6 +29,13 @@
       "when": 1791964945707,
       "tag": "0003_quiz_duration_and_rerequest",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791965406762,
+      "tag": "0004_course_grade",
+      "breakpoints": true
     }
   ]
 }
