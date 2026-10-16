@@ -36,6 +36,20 @@
       "when": 1791965406762,
       "tag": "0004_course_grade",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792169679209,
+      "tag": "0005_grant_table_privileges",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792169702859,
+      "tag": "0006_grant_function_execute",
+      "breakpoints": true
     }
   ]
 }
