@@ -18,7 +18,7 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { useMe, statusLabels, type AccountStatus } from "@/lib/auth";
-import { isValidDriveUrl, normalizeDriveUrl } from "@/lib/drive";
+import { isValidDriveUrl, isValidVideoUrl, normalizeDriveUrl, normalizeVideoUrl } from "@/lib/drive";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
