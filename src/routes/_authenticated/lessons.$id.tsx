@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, ExternalLink, FileText, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { driveEmbedUrl, driveViewUrl } from "@/lib/drive";
+import { videoEmbedUrl, videoViewUrl, parseDriveFileId } from "@/lib/drive";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/States";
@@ -76,8 +76,9 @@ function LessonPage() {
   if (!q.data) return <NotFoundPage />;
 
   const { lesson, completed, prev, next } = q.data;
-  const embed = lesson.video_url ? driveEmbedUrl(lesson.video_url) : null;
-  const view = lesson.video_url ? driveViewUrl(lesson.video_url) : null;
+  const embed = lesson.video_url ? videoEmbedUrl(lesson.video_url) : null;
+  const view = lesson.video_url ? videoViewUrl(lesson.video_url) : null;
+  const isDrive = !!lesson.video_url && !!parseDriveFileId(lesson.video_url);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
@@ -98,7 +99,7 @@ function LessonPage() {
       </div>
       {watching && view && (
         <p className="mt-2 text-xs text-muted-foreground">
-          الفيديو مش ظاهر؟ <a href={view} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">افتحه على Google Drive <ExternalLink className="size-3" /></a>
+          الفيديو مش ظاهر؟ <a href={view} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">افتحه على {isDrive ? "Google Drive" : "YouTube"} <ExternalLink className="size-3" /></a>
         </p>
       )}
 
