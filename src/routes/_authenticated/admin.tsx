@@ -443,14 +443,14 @@ function CoursesTab({
   const addLesson = useMutation({
     mutationFn: async () => {
       const video = lessonForm.video_url.trim();
-      if (video && !isValidDriveUrl(video)) throw new Error("رابط الفيديو لازم يكون رابط Google Drive صحيح");
+      if (video && !isValidVideoUrl(video)) throw new Error("رابط الفيديو لازم يكون رابط YouTube أو Google Drive صحيح");
       const resource = lessonForm.resource_url.trim();
       if (resource && !isValidDriveUrl(resource)) throw new Error("رابط المرفق لازم يكون رابط Google Drive صحيح");
       const { error } = await supabase.from("lessons").insert({
         course_id: lessonForm.course_id,
         title: lessonForm.title.trim(),
         description: lessonForm.description.trim(),
-        video_url: video ? normalizeDriveUrl(video) : null,
+        video_url: video ? normalizeVideoUrl(video) : null,
         resource_url: resource ? normalizeDriveUrl(resource) : null,
         lesson_order: Number(lessonForm.lesson_order) || 1,
       });
@@ -555,7 +555,7 @@ function CoursesTab({
           </div>
           <div>
             <Label htmlFor="lv">رابط فيديو Google Drive</Label>
-            <Input id="lv" dir="ltr" placeholder="https://drive.google.com/file/d/.../view" value={lessonForm.video_url} onChange={(e) => setLessonForm({ ...lessonForm, video_url: e.target.value })} />
+            <Input id="lv" dir="ltr" placeholder="https://youtube.com/watch?v=... أو https://drive.google.com/file/d/.../view" value={lessonForm.video_url} onChange={(e) => setLessonForm({ ...lessonForm, video_url: e.target.value })} />
           </div>
           <div>
             <Label htmlFor="lr">رابط مرفق Google Drive (اختياري)</Label>

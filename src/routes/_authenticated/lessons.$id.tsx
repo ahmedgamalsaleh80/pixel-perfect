@@ -76,8 +76,9 @@ function LessonPage() {
   if (!q.data) return <NotFoundPage />;
 
   const { lesson, completed, prev, next } = q.data;
-  const embed = lesson.video_url ? driveEmbedUrl(lesson.video_url) : null;
-  const view = lesson.video_url ? driveViewUrl(lesson.video_url) : null;
+  const embed = lesson.video_url ? videoEmbedUrl(lesson.video_url) : null;
+  const view = lesson.video_url ? videoViewUrl(lesson.video_url) : null;
+  const isDrive = !!lesson.video_url && !!parseDriveFileId(lesson.video_url);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
