@@ -99,7 +99,7 @@ function LessonPage() {
       </div>
       {watching && view && (
         <p className="mt-2 text-xs text-muted-foreground">
-          الفيديو مش ظاهر؟ <a href={view} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">افتحه على Google Drive <ExternalLink className="size-3" /></a>
+          الفيديو مش ظاهر؟ <a href={view} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">افتحه على {isDrive ? "Google Drive" : "YouTube"} <ExternalLink className="size-3" /></a>
         </p>
       )}
 
