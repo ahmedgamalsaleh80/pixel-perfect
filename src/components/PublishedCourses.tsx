@@ -3,19 +3,30 @@ import { BookOpen, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { RequestAccess } from "@/components/RequestAccess";
 import { Skeleton } from "@/components/ui/skeleton";
+import { gradeLabels } from "@/lib/auth";
 
-/** Public preview of published courses (title/description only — lessons stay private). */
+/** Public preview of published courses; student's own grade first, others flagged. */
 export function PublishedCourses() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["public-courses"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("courses")
-        .select("id,title,slug,description,thumbnail_url")
-        .eq("is_published", true)
-        .order("created_at", { ascending: false })
+      const [{ data, error }, { data: u }] = await Promise.all([
+        supabase
+          .from("courses")
+          .select("id,title,slug,description,thumbnail_url,grade")
+          .eq("is_published", true)
+          .order("created_at", { ascending: false }),
+        supabase.auth.getUser(),
+      ]);
       if (error) throw error;
-      return data;
+      let myGrade: string | null = null;
+      if (u.user) {
+        const { data: p } = await supabase.from("profiles").select("grade").eq("id", u.user.id).maybeSingle();
+        myGrade = p?.grade ?? null;
+      }
+      const list = (data ?? []).map((c) => ({ ...c, other: !!myGrade && !!c.grade && c.grade !== myGrade }));
+      list.sort((a, b) => Number(a.other) - Number(b.other));
+      return list;
     },
   });
 
@@ -30,15 +41,19 @@ export function PublishedCourses() {
           <p className="col-span-full rounded-xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">الكورسات هتنزل قريب، تابعنا!</p>
         )}
         {data?.map((c) => (
-          <article key={c.id} className="flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card-gradient">
+          <article key={c.id} className={`flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card-gradient ${c.other ? "opacity-70" : ""}`}>
             {c.thumbnail_url ? (
               <img src={c.thumbnail_url} alt="" className="aspect-video w-full object-cover" loading="lazy" />
             ) : (
               <div className="flex aspect-video items-center justify-center bg-primary/10"><BookOpen className="size-10 text-primary" /></div>
             )}
             <div className="flex flex-1 flex-col p-5">
-              <h3 className="font-display text-lg font-bold">{c.title}</h3>
-              <p className="mt-2 line-clamp-3 flex-1 text-sm text-muted-foreground">{c.description}</p>
+              <div className="flex flex-wrap gap-2">
+                {c.grade && <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs text-primary">{gradeLabels[c.grade] ?? c.grade}</span>}
+                {c.other && <span className="rounded-full bg-warning/15 px-2.5 py-0.5 text-xs text-warning">مش لصفك</span>}
+              </div>
+              <h3 className="mt-2 font-display text-lg font-bold">{c.title}</h3>
+              <p className="mt-2 line-clamp-3 flex-1 whitespace-pre-line text-sm text-muted-foreground">{c.description}</p>
               <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><Lock className="size-3.5 text-primary" />بيتفتح بعد موافقة الإدارة</p>
               <div className="mt-3"><RequestAccess courseId={c.id} slug={c.slug} /></div>
             </div>
