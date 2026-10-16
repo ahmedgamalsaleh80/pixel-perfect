@@ -84,6 +84,7 @@ type CourseRow = {
   thumbnail_url: string | null;
   is_published: boolean;
   max_students: number | null;
+  grade: string | null;
 };
 
 type LessonRow = {
@@ -128,7 +129,7 @@ function AdminPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("courses")
-        .select("id,title,slug,description,thumbnail_url,is_published,max_students")
+        .select("id,title,slug,description,thumbnail_url,is_published,max_students,grade")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as CourseRow[];
@@ -363,12 +364,12 @@ function CoursesTab({
   lessons: LessonRow[];
   onChanged: () => void;
 }) {
-  const emptyCourse = { title: "", slug: "", description: "", thumbnail_url: "", max_students: "" };
+  const emptyCourse = { title: "", slug: "", description: "", thumbnail_url: "", max_students: "", grade: "" };
   const [courseForm, setCourseForm] = useState(emptyCourse);
   const [editingId, setEditingId] = useState<string | null>(null);
   const startEdit = (c: CourseRow) => {
     setEditingId(c.id);
-    setCourseForm({ title: c.title, slug: c.slug, description: c.description ?? "", thumbnail_url: c.thumbnail_url ?? "", max_students: c.max_students ? String(c.max_students) : "" });
+    setCourseForm({ title: c.title, slug: c.slug, description: c.description ?? "", thumbnail_url: c.thumbnail_url ?? "", max_students: c.max_students ? String(c.max_students) : "", grade: c.grade ?? "" });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const [lessonForm, setLessonForm] = useState({
@@ -394,6 +395,7 @@ function CoursesTab({
           description: courseForm.description.trim(),
           thumbnail_url: courseForm.thumbnail_url.trim() || null,
           max_students: max > 0 ? max : null,
+          grade: courseForm.grade || null,
         }).eq("id", editingId);
         if (error) throw error;
         return;
@@ -404,6 +406,7 @@ function CoursesTab({
         description: courseForm.description.trim(),
         thumbnail_url: courseForm.thumbnail_url.trim() || null,
         max_students: max > 0 ? max : null,
+        grade: courseForm.grade || null,
       });
       if (error) throw error;
     },
@@ -508,6 +511,14 @@ function CoursesTab({
           <div>
             <Label htmlFor="cmax">أقصى عدد طلاب (اختياري)</Label>
             <Input id="cmax" type="number" min={1} dir="ltr" placeholder="بدون حد" value={courseForm.max_students} onChange={(e) => setCourseForm({ ...courseForm, max_students: e.target.value })} />
+          </div>
+          <div>
+            <Label htmlFor="cgrade">الصف</Label>
+            <select id="cgrade" className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={courseForm.grade} onChange={(e) => setCourseForm({ ...courseForm, grade: e.target.value })}>
+              <option value="">لكل الصفوف</option>
+              <option value="bac1">الصف الأول بكالوريا</option>
+              <option value="bac2">الصف الثاني بكالوريا</option>
+            </select>
           </div>
           <Button onClick={() => addCourse.mutate()} disabled={!courseForm.title.trim() || addCourse.isPending}>
             <Plus className="size-4" /> {editingId ? "حفظ التعديلات" : "إضافة الكورس"}
