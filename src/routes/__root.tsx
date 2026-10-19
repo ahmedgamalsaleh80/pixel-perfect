@@ -19,7 +19,6 @@ import { ThemeToggle, InstallButton } from "@/components/ThemeInstall";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { meQuery, useMe } from "@/lib/auth";
-
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -28,15 +27,12 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-
         <h2 className="mt-4 text-xl font-semibold text-foreground">
           الصفحة غير موجودة
         </h2>
-
         <p className="mt-2 text-sm text-muted-foreground">
           الصفحة اللي بتدور عليها مش موجودة أو اتنقلت لمكان تاني.
         </p>
-
         <div className="mt-6">
           <Link
             to="/"
@@ -52,7 +48,6 @@ function NotFoundComponent() {
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
-
   const router = useRouter();
 
   useEffect(() => {
@@ -67,11 +62,9 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           حصلت مشكلة أثناء تحميل الصفحة
         </h1>
-
         <p className="mt-2 text-sm text-muted-foreground">
           حدث خطأ غير متوقع. جرّب تحديث الصفحة أو العودة للرئيسية.
         </p>
-
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -82,7 +75,6 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
           >
             حاول مرة أخرى
           </button>
-
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
@@ -92,6 +84,26 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+function RootShell({ children }: { children: ReactNode }) {
+  return (
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{if(localStorage.getItem("theme")==="light")document.documentElement.classList.add("light")}catch(e){}',
+          }}
+        />
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
+    </html>
   );
 }
 
@@ -122,14 +134,8 @@ export const Route = createRootRouteWithContext<{
         content:
           "نفهم قبل ما نبرمج يا هندسة — كورسات برمجة وذكاء اصطناعي بالعربي.",
       },
-      {
-        property: "og:type",
-        content: "website",
-      },
-      {
-        name: "twitter:card",
-        content: "summary_large_image",
-      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -138,18 +144,12 @@ export const Route = createRootRouteWithContext<{
         href: "/favicon.png",
         type: "image/png",
       },
-      {
-        rel: "manifest",
-        href: "/manifest.webmanifest",
-      },
+      { rel: "manifest", href: "/manifest.webmanifest" },
       {
         rel: "apple-touch-icon",
         href: "/icon-512.png",
       },
-      {
-        rel: "preconnect",
-        href: "https://fonts.googleapis.com",
-      },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
         href: "https://fonts.gstatic.com",
@@ -161,33 +161,11 @@ export const Route = createRootRouteWithContext<{
       },
     ],
   }),
-
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
-
-function RootShell({ children }: { children: ReactNode }) {
-  return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              'try{if(localStorage.getItem("theme")==="light")document.documentElement.classList.add("light")}catch(e){}',
-          }}
-        />
-        <HeadContent />
-      </head>
-
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
 
 function SiteHeader() {
   const { data: me } = useMe();
@@ -213,7 +191,6 @@ function SiteHeader() {
               height={36}
             />
           </span>
-
           <span className="font-display text-lg font-bold leading-tight">
             منصة المهندس أحمد جمال
           </span>
@@ -229,7 +206,6 @@ function SiteHeader() {
           >
             الرئيسية
           </Link>
-
           <Link
             to="/courses"
             className="transition-colors hover:text-foreground"
@@ -239,7 +215,6 @@ function SiteHeader() {
           >
             الكورسات
           </Link>
-
           <Link
             to="/editor"
             className="transition-colors hover:text-foreground"
@@ -287,7 +262,6 @@ function SiteHeader() {
               >
                 تسجيل الدخول
               </Link>
-
               <Link
                 to="/auth"
                 search={{ mode: "register" }}
@@ -307,14 +281,10 @@ function SiteFooter() {
   return (
     <footer className="border-t border-border/60 py-8">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 text-center">
-        <p className="font-display font-bold">
-          منصة المهندس أحمد جمال
-        </p>
-
+        <p className="font-display font-bold">منصة المهندس أحمد جمال</p>
         <p className="text-sm text-muted-foreground">
           نفهم قبل ما نبرمج يا هندسة
         </p>
-
         <p className="text-xs text-muted-foreground/70">
           جميع الحقوق محفوظة © {new Date().getFullYear()}
         </p>
@@ -340,7 +310,6 @@ function RootComponent() {
       queryClient.invalidateQueries({
         queryKey: meQuery.queryKey,
       });
-
       router.invalidate();
     });
 
@@ -351,14 +320,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col">
         <SiteHeader />
-
         <main className="flex-1">
           <Outlet />
         </main>
-
         <SiteFooter />
       </div>
-
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );
