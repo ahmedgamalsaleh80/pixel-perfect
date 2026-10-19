@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { GraduationCap, LogOut } from "lucide-react";
+import { ThemeToggle, InstallButton } from "@/components/ThemeInstall";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { meQuery, useMe } from "@/lib/auth";
