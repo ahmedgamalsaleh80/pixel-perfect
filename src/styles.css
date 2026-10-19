@@ -1,15 +1,9 @@
-```css
+
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-
-/*
- * Design System — منصة المهندس أحمد جمال
- * Dark navy + Azure educational theme
- * Arabic RTL
- */
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -44,13 +38,6 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -64,42 +51,30 @@
   --font-display: "Cairo", "IBM Plex Sans Arabic", system-ui, sans-serif;
 }
 
-/* Dark mode — default */
-
 :root {
   color-scheme: dark;
   --radius: 0.75rem;
 
   --background: oklch(0.16 0.03 255);
   --foreground: oklch(0.96 0.01 250);
-
   --card: oklch(0.2 0.035 255);
   --card-foreground: oklch(0.96 0.01 250);
-
   --popover: oklch(0.2 0.035 255);
   --popover-foreground: oklch(0.96 0.01 250);
-
   --primary: oklch(0.62 0.19 245);
   --primary-foreground: oklch(0.98 0.005 250);
-
   --secondary: oklch(0.24 0.04 255);
   --secondary-foreground: oklch(0.92 0.02 250);
-
   --muted: oklch(0.24 0.04 255);
   --muted-foreground: oklch(0.7 0.03 250);
-
   --accent: oklch(0.28 0.06 245);
   --accent-foreground: oklch(0.96 0.01 250);
-
   --destructive: oklch(0.6 0.2 25);
   --destructive-foreground: oklch(0.98 0.005 250);
-
   --success: oklch(0.65 0.17 160);
   --success-foreground: oklch(0.98 0.005 250);
-
   --warning: oklch(0.75 0.15 80);
   --warning-foreground: oklch(0.2 0.03 255);
-
   --border: oklch(0.3 0.04 255);
   --input: oklch(0.3 0.04 255);
   --ring: oklch(0.62 0.19 245);
@@ -123,41 +98,29 @@
   --hero-glow-secondary: oklch(0.62 0.19 245 / 0.08);
 }
 
-/* Light mode — activated by .light on html */
-
 html.light {
   color-scheme: light;
 
   --background: oklch(0.98 0.005 250);
   --foreground: oklch(0.2 0.03 255);
-
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0.03 255);
-
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.03 255);
-
   --primary: oklch(0.55 0.19 245);
   --primary-foreground: oklch(0.99 0.005 250);
-
   --secondary: oklch(0.94 0.015 250);
   --secondary-foreground: oklch(0.25 0.03 255);
-
   --muted: oklch(0.94 0.015 250);
   --muted-foreground: oklch(0.45 0.03 255);
-
   --accent: oklch(0.92 0.03 245);
   --accent-foreground: oklch(0.2 0.03 255);
-
   --destructive: oklch(0.55 0.2 25);
   --destructive-foreground: oklch(0.99 0.005 250);
-
   --success: oklch(0.52 0.15 160);
   --success-foreground: oklch(0.99 0.005 250);
-
   --warning: oklch(0.6 0.15 70);
   --warning-foreground: oklch(0.2 0.03 255);
-
   --border: oklch(0.88 0.02 250);
   --input: oklch(0.88 0.02 250);
   --ring: oklch(0.55 0.19 245);
@@ -180,8 +143,6 @@ html.light {
   --hero-glow: oklch(0.62 0.19 245 / 0.10);
   --hero-glow-secondary: oklch(0.62 0.19 245 / 0.05);
 }
-
-/* Global styles */
 
 @layer base {
   *,
@@ -237,43 +198,23 @@ html.light {
   }
 }
 
-/* Theme-aware gradients */
-
 @utility bg-hero-gradient {
   background:
-    radial-gradient(
-      ellipse 80% 60% at 70% -10%,
-      var(--hero-glow),
-      transparent
-    ),
-    radial-gradient(
-      ellipse 60% 50% at 20% 110%,
-      var(--hero-glow-secondary),
-      transparent
-    ),
+    radial-gradient(ellipse 80% 60% at 70% -10%, var(--hero-glow), transparent),
+    radial-gradient(ellipse 60% 50% at 20% 110%, var(--hero-glow-secondary), transparent),
     var(--color-background);
 }
 
 @utility bg-card-gradient {
-  background: linear-gradient(
-    160deg,
-    var(--color-card),
-    var(--color-background)
-  );
+  background: linear-gradient(160deg, var(--color-card), var(--color-background));
 }
 
 @utility text-gradient-azure {
-  background: linear-gradient(
-    120deg,
-    oklch(0.75 0.15 245),
-    oklch(0.62 0.19 245)
-  );
+  background: linear-gradient(120deg, oklch(0.75 0.15 245), oklch(0.62 0.19 245));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-
-/* Smooth theme transitions */
 
 html,
 body,
@@ -290,4 +231,3 @@ body * {
     transition-duration: 0ms !important;
   }
 }
-```
