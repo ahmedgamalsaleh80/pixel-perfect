@@ -40,7 +40,7 @@ function LessonPage() {
     queryFn: async () => {
       const { data: lesson, error } = await supabase
         .from("lessons")
-        .select("id,title,description,video_url,resource_url,course_id,lesson_order,is_published,courses(title,slug)")
+        .select("id,title,description,video_url,resource_url,attachments,course_id,lesson_order,is_published,courses(title,slug)")
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
@@ -104,6 +104,13 @@ function LessonPage() {
       )}
 
       {lesson.description && <p className="mt-6 whitespace-pre-line leading-relaxed text-muted-foreground">{lesson.description}</p>}
+      {Array.isArray(lesson.attachments) && lesson.attachments.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-3">
+          {(lesson.attachments as { title?: string; url?: string }[]).filter((a) => a?.url && /^https:\/\//.test(a.url)).map((a, i) => (
+            <a key={i} href={a.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm text-primary hover:underline"><FileText className="size-4" />{a.title || "ملف"}</a>
+          ))}
+        </div>
+      )}
       {lesson.resource_url && /^https:\/\//.test(lesson.resource_url) && (
         <a href={lesson.resource_url} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm text-primary hover:underline"><FileText className="size-4" />ملفات الدرس</a>
       )}
