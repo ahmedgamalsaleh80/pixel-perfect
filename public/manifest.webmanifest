@@ -1,0 +1,14 @@
+{
+  "name": "منصة المهندس أحمد جمال",
+  "short_name": "م. أحمد جمال",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1729",
+  "theme_color": "#2f7fe0",
+  "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
