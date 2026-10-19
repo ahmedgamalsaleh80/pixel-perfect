@@ -1,5 +1,9 @@
 ```tsx
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -24,12 +28,15 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
+
         <h2 className="mt-4 text-xl font-semibold text-foreground">
           الصفحة غير موجودة
         </h2>
+
         <p className="mt-2 text-sm text-muted-foreground">
           الصفحة اللي بتدور عليها مش موجودة أو اتنقلت لمكان تاني.
         </p>
+
         <div className="mt-6">
           <Link
             to="/"
@@ -45,6 +52,7 @@ function NotFoundComponent() {
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -59,9 +67,11 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           حصلت مشكلة أثناء تحميل الصفحة
         </h1>
+
         <p className="mt-2 text-sm text-muted-foreground">
           حدث خطأ غير متوقع. جرّب تحديث الصفحة أو العودة للرئيسية.
         </p>
+
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -72,6 +82,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
           >
             حاول مرة أخرى
           </button>
+
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
@@ -111,8 +122,14 @@ export const Route = createRootRouteWithContext<{
         content:
           "نفهم قبل ما نبرمج يا هندسة — كورسات برمجة وذكاء اصطناعي بالعربي.",
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -121,12 +138,18 @@ export const Route = createRootRouteWithContext<{
         href: "/favicon.png",
         type: "image/png",
       },
-      { rel: "manifest", href: "/manifest.webmanifest" },
+      {
+        rel: "manifest",
+        href: "/manifest.webmanifest",
+      },
       {
         rel: "apple-touch-icon",
         href: "/icon-512.png",
       },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.googleapis.com",
+      },
       {
         rel: "preconnect",
         href: "https://fonts.gstatic.com",
@@ -138,6 +161,7 @@ export const Route = createRootRouteWithContext<{
       },
     ],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -150,11 +174,13 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem("theme")==="light")document.documentElement.classList.add("light")}catch(e){}`,
+            __html:
+              'try{if(localStorage.getItem("theme")==="light")document.documentElement.classList.add("light")}catch(e){}',
           }}
         />
         <HeadContent />
       </head>
+
       <body>
         {children}
         <Scripts />
@@ -178,7 +204,7 @@ function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2.5">
-          <span className="flex size-9 items-center justify-center overflow-hidden rounded-lg">
+          <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg">
             <img
               src="/logo.png"
               alt="شعار منصة المهندس أحمد جمال"
@@ -284,9 +310,11 @@ function SiteFooter() {
         <p className="font-display font-bold">
           منصة المهندس أحمد جمال
         </p>
+
         <p className="text-sm text-muted-foreground">
           نفهم قبل ما نبرمج يا هندسة
         </p>
+
         <p className="text-xs text-muted-foreground/70">
           جميع الحقوق محفوظة © {new Date().getFullYear()}
         </p>
@@ -312,6 +340,7 @@ function RootComponent() {
       queryClient.invalidateQueries({
         queryKey: meQuery.queryKey,
       });
+
       router.invalidate();
     });
 
@@ -322,11 +351,14 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col">
         <SiteHeader />
+
         <main className="flex-1">
           <Outlet />
         </main>
+
         <SiteFooter />
       </div>
+
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );
