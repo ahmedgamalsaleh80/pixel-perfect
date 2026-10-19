@@ -40,7 +40,7 @@ function LessonPage() {
     queryFn: async () => {
       const { data: lesson, error } = await supabase
         .from("lessons")
-        .select("id,title,description,video_url,resource_url,course_id,lesson_order,is_published,courses(title,slug)")
+        .select("id,title,description,video_url,resource_url,attachments,course_id,lesson_order,is_published,courses(title,slug)")
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
