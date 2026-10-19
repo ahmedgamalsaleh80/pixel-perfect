@@ -57,103 +57,112 @@ const EXT_TO_LANG: Record<string, Lang> = {
 };
 
 function runnerDoc(lang: Lang, code: string) {
-  const safe = JSON.stringify(code).replace(/</g, "\\u003c");
+  const safeCode = JSON.stringify(code).replace(/</g, "\\u003c");
 
   const bridge = `
     <script>
-      const send = (t, k) => {
+      function send(t, k) {
         parent.postMessage({
-          __runner: 1,
+          __runner: true,
           t: String(t ?? ""),
-          k
+          k: k
         }, "*");
-      };
+      }
+
+      window.addEventListener("error", function(event) {
+        send(event.message || "حدث خطأ أثناء التشغيل", "err");
+      });
     </script>
   `;
 
   if (lang === "javascript") {
-    return `${bridge}
-      <script>
-        console.log = (...args) => {
-          send(
-            args.map(value => {
-              if (typeof value === "object" && value !== null) {
-                try {
-                  return JSON.stringify(value);
-                } catch {
-                  return String(value);
+    return `<!doctype html>
+      <html>
+        <head><meta charset="utf-8"></head>
+        <body>
+          ${bridge}
+          <script>
+            const originalLog = console.log;
+            const originalError = console.error;
+
+            console.log = (...args) => {
+              send(args.map(value => {
+                if (typeof value === "object" && value !== null) {
+                  try {
+                    return JSON.stringify(value);
+                  } catch {
+                    return String(value);
+                  }
                 }
-              }
-              return String(value);
-            }).join(" "),
-            "out"
-          );
-        };
+                return String(value);
+              }).join(" "), "out");
+            };
 
-        console.error = (...args) => {
-          send(args.map(String).join(" "), "err");
-        };
+            console.error = (...args) => {
+              send(args.map(String).join(" "), "err");
+            };
 
-        try {
-          new Function(${safe})();
-        } catch (error) {
-          send(error?.message || error, "err");
-        } finally {
-          send("", "done");
-        }
-      </script>
-    `;
+            try {
+              new Function(${safeCode})();
+            } catch (error) {
+              send(error?.stack || error?.message || String(error), "err");
+            } finally {
+              console.log = originalLog;
+              console.error = originalError;
+              send("", "done");
+            }
+          </script>
+        </body>
+      </html>`;
   }
 
   if (lang === "python") {
-    return `${bridge}
-      <script>
-        (async () => {
-          try {
-            send("جاري تحميل مكتبة Python...", "info");
+    return `<!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+        </head>
+        <body>
+          ${bridge}
+          <script type="module">
+            (async function() {
+              try {
+                send("جاري تحميل مكتبة Python...", "info");
 
-            const script = document.createElement("script");
-            script.src =
-              "https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js";
-            script.async = true;
+                const pyodideUrl =
+                  "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.mjs";
 
-            await new Promise((resolve, reject) => {
-              script.onload = resolve;
-              script.onerror = () => reject(
-                new Error(
-                  "فشل تحميل مكتبة Python. تأكد من اتصال الإنترنت."
-                )
-              );
+                const pyodideModule = await import(pyodideUrl);
 
-              document.head.appendChild(script);
-            });
+                if (typeof pyodideModule.loadPyodide !== "function") {
+                  throw new Error(
+                    "دالة loadPyodide غير موجودة في المكتبة المحمّلة."
+                  );
+                }
 
-            const loadPyodideFn = globalThis.loadPyodide;
+                const py = await pyodideModule.loadPyodide({
+                  stdout: function(text) {
+                    send(text, "out");
+                  },
+                  stderr: function(text) {
+                    send(text, "err");
+                  }
+                });
 
-            if (typeof loadPyodideFn !== "function") {
-              throw new Error(
-                "مكتبة Pyodide اتحملت لكن دالة التشغيل غير متاحة."
-              );
-            }
-
-            const py = await loadPyodideFn({
-              stdout: (text) => send(text, "out"),
-              stderr: (text) => send(text, "err")
-            });
-
-            send("", "clear");
-            await py.runPythonAsync(${safe});
-          } catch (error) {
-            send(
-              error?.message || String(error),
-              "err"
-            );
-          } finally {
-            send("", "done");
-          }
-        })();
-      </script>
-    `;
+                send("", "clear");
+                await py.runPythonAsync(${safeCode});
+              } catch (error) {
+                send(
+                  error?.stack || error?.message || String(error),
+                  "err"
+                );
+              } finally {
+                send("", "done");
+              }
+            })();
+          </script>
+        </body>
+      </html>`;
   }
 
   return "";
@@ -169,18 +178,16 @@ export function CodeEditor({
   const [name, setName] = useState("my-code");
   const [output, setOutput] = useState<OutputItem[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
-  const [runKey, setRunKey] = useState(0);
   const [doc, setDoc] = useState<string | null>(null);
+  const [runKey, setRunKey] = useState(0);
 
   const fileRef = useRef<HTMLInputElement>(null);
+  const runnerRef = useRef<HTMLIFrameElement>(null);
   const meta = LANGS.find((item) => item.id === lang)!;
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {
-      // Accept messages only from the currently running sandbox.
-      const frame = document.querySelector<HTMLIFrameElement>(
-        'iframe[title="runner"]'
-      );
+      const frame = runnerRef.current;
 
       if (!frame || event.source !== frame.contentWindow) {
         return;
@@ -188,7 +195,7 @@ export function CodeEditor({
 
       const data = event.data;
 
-      if (!data || data.__runner !== 1) {
+      if (!data || data.__runner !== true) {
         return;
       }
 
@@ -219,8 +226,8 @@ export function CodeEditor({
 
   function run() {
     setOutput([]);
-    setDoc(null);
     setPreview(null);
+    setDoc(null);
 
     if (lang === "html") {
       setPreview(code);
@@ -228,31 +235,29 @@ export function CodeEditor({
     }
 
     if (lang === "css") {
-      setPreview(`
-        <!doctype html>
+      setPreview(`<!doctype html>
         <html>
           <head>
             <meta charset="utf-8">
-            <style>
-              ${code}
-            </style>
+            <style>${code}</style>
           </head>
           <body>
             <h1>عنوان تجريبي</h1>
             <p>فقرة لتجربة التنسيق</p>
             <button>زرار</button>
           </body>
-        </html>
-      `);
+        </html>`);
       return;
     }
 
-    setDoc(runnerDoc(lang, code));
     setRunKey((current) => current + 1);
+    setDoc(runnerDoc(lang, code));
   }
 
   function save() {
-    const base = name.trim().replace(/[\\/:*?"<>|]/g, "") || "my-code";
+    const base =
+      name.trim().replace(/[\\/:*?"<>|]/g, "") || "my-code";
+
     const fileName = base.includes(".")
       ? base
       : `${base}.${meta.ext}`;
@@ -285,12 +290,12 @@ export function CodeEditor({
 
     const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
 
-    if (EXT_TO_LANG[extension]) {
-      setLang(EXT_TO_LANG[extension]!);
-    }
-
     try {
       const content = await file.text();
+
+      if (EXT_TO_LANG[extension]) {
+        setLang(EXT_TO_LANG[extension]!);
+      }
 
       setCode(content);
       setName(file.name.replace(/\.[^.]+$/, ""));
@@ -387,15 +392,13 @@ export function CodeEditor({
               const start = textarea.selectionStart;
               const end = textarea.selectionEnd;
 
-              const nextCode =
-                code.slice(0, start) +
-                "    " +
-                code.slice(end);
-
-              setCode(nextCode);
+              setCode(
+                code.slice(0, start) + "    " + code.slice(end)
+              );
 
               requestAnimationFrame(() => {
-                textarea.selectionStart = textarea.selectionEnd = start + 4;
+                textarea.selectionStart =
+                  textarea.selectionEnd = start + 4;
               });
             }
           }}
@@ -442,6 +445,7 @@ export function CodeEditor({
           {doc !== null && (
             <iframe
               key={runKey}
+              ref={runnerRef}
               title="runner"
               sandbox="allow-scripts"
               srcDoc={doc}
