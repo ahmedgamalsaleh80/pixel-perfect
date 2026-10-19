@@ -173,7 +173,7 @@ export function AddStudentTab() {
     mutationFn: async () => {
       if (!f.grade) throw new Error("اختار الصف");
       const r = await create({ data: { ...f, grade: f.grade as "bac1" | "bac2" } });
-      if (!r.ok) throw new Error(r.error.includes("already") ? "البريد ده مسجل بالفعل" : "فشل إنشاء الحساب");
+      if (!r.ok) throw new Error(r.error.includes("already") ? "البريد ده مسجل بالفعل" : `فشل إنشاء الحساب: ${r.error}`);
     },
     onSuccess: () => { toast.success("تم إضافة الطالب واعتماده"); setF(empty); invalidate(); },
     onError: (e) => toast.error(e.message.includes("[") ? "راجع البيانات: كل الخانات مطلوبة وكلمة المرور ٨ أحرف على الأقل" : e.message),
@@ -185,7 +185,7 @@ export function AddStudentTab() {
       if (!password) return false;
       if (password.length < 8) throw new Error("كلمة المرور قصيرة");
       const r = await setPw({ data: { userId, password } });
-      if (!r.ok) throw new Error("فشل تغيير كلمة المرور");
+      if (!r.ok) throw new Error(`فشل تغيير كلمة المرور: ${r.error}`);
       return true;
     },
     onSuccess: (ok) => { if (ok) { toast.success("تم تغيير كلمة المرور"); invalidate(); } },

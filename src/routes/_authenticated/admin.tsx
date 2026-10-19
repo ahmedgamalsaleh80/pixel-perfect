@@ -380,6 +380,7 @@ function CoursesTab({
     resource_url: "",
     lesson_order: "1",
   });
+  const [attachText, setAttachText] = useState("");
 
   const addCourse = useMutation({
     mutationFn: async () => {
@@ -446,6 +447,13 @@ function CoursesTab({
       if (video && !isValidVideoUrl(video)) throw new Error("رابط الفيديو لازم يكون رابط YouTube أو Google Drive صحيح");
       const resource = lessonForm.resource_url.trim();
       if (resource && !isValidDriveUrl(resource)) throw new Error("رابط المرفق لازم يكون رابط Google Drive صحيح");
+      const attachments = attachText.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+        const i = l.lastIndexOf("|");
+        const title = i >= 0 ? l.slice(0, i).trim() : "ملف";
+        const url = (i >= 0 ? l.slice(i + 1) : l).trim();
+        if (!/^https:\/\/\S+$/.test(url)) throw new Error(`رابط غير صحيح: ${l}`);
+        return { title: title || "ملف", url };
+      });
       const { error } = await supabase.from("lessons").insert({
         course_id: lessonForm.course_id,
         title: lessonForm.title.trim(),
@@ -453,11 +461,13 @@ function CoursesTab({
         video_url: video ? normalizeVideoUrl(video) : null,
         resource_url: resource ? normalizeDriveUrl(resource) : null,
         lesson_order: Number(lessonForm.lesson_order) || 1,
+        attachments,
       });
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("تم إضافة الدرس");
+      setAttachText("");
       setLessonForm({ course_id: "", title: "", description: "", video_url: "", resource_url: "", lesson_order: "1" });
       onChanged();
     },
@@ -560,6 +570,10 @@ function CoursesTab({
           <div>
             <Label htmlFor="lr">رابط مرفق Google Drive (اختياري)</Label>
             <Input id="lr" dir="ltr" value={lessonForm.resource_url} onChange={(e) => setLessonForm({ ...lessonForm, resource_url: e.target.value })} />
+          </div>
+          <div>
+            <Label htmlFor="la">واجبات وملفات إضافية (اختياري)</Label>
+            <textarea id="la" rows={4} className="w-full rounded-md border border-input bg-background p-2 text-sm" placeholder={"كل ملف في سطر: الاسم | الرابط\nمذكرة الشرح | https://drive.google.com/...\nالواجب | https://drive.google.com/..."} value={attachText} onChange={(e) => setAttachText(e.target.value)} />
           </div>
           <div>
             <Label htmlFor="lo">ترتيب الدرس</Label>

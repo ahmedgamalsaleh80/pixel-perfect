@@ -13,7 +13,7 @@ const createSchema = z.object({
 
 async function assertAdmin(supabase: any, userId: string) {
   const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-  if (!data) throw new Error("Forbidden");
+  if (!data) throw new Error("مش مسموح: الحساب ده مش أدمن");
 }
 
 export const adminCreateStudent = createServerFn({ method: "POST" })
@@ -30,8 +30,10 @@ export const adminCreateStudent = createServerFn({ method: "POST" })
     });
     if (error || !created.user) return { ok: false as const, error: error?.message ?? "error" };
     const id = created.user.id;
-    await supabaseAdmin.from("profiles").update({ account_status: "approved" }).eq("id", id);
-    await supabaseAdmin.from("student_credentials").upsert({ user_id: id, password: data.password });
+    const { error: pe } = await supabaseAdmin.from("profiles").upsert({ id, email: data.email, full_name: data.fullName, phone: data.phone, parent_phone: data.parentPhone, grade: data.grade, account_status: "approved" });
+    if (pe) return { ok: false as const, error: pe.message };
+    const { error: ce } = await supabaseAdmin.from("student_credentials").upsert({ user_id: id, password: data.password });
+    if (ce) return { ok: false as const, error: ce.message };
     return { ok: true as const, id };
   });
 
@@ -43,6 +45,7 @@ export const adminSetPassword = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, { password: data.password });
     if (error) return { ok: false as const, error: error.message };
-    await supabaseAdmin.from("student_credentials").upsert({ user_id: data.userId, password: data.password, updated_at: new Date().toISOString() });
+    const { error: ce } = await supabaseAdmin.from("student_credentials").upsert({ user_id: data.userId, password: data.password, updated_at: new Date().toISOString() });
+    if (ce) return { ok: false as const, error: ce.message };
     return { ok: true as const };
   });
