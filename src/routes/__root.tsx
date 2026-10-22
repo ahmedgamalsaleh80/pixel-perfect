@@ -1,4 +1,3 @@
-```tsx
 import {
   QueryClient,
   QueryClientProvider,
@@ -329,4 +328,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-```
